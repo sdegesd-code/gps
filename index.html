@@ -179,11 +179,18 @@ async function refreshPlace(){
 }
 
 async function start(){
+  const watch=()=>{clearTimeout(cam._chk);cam._chk=setTimeout(()=>{if(!cam.videoWidth)toast('Camera not showing — tap the screen to retry')},3000)};
   try{
     if(stream)stream.getTracks().forEach(t=>t.stop());
     stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facing},width:{ideal:1920},height:{ideal:1080}},audio:false});
-    cam.srcObject=stream;cam.classList.toggle('front',facing==='user');cam.play().catch(()=>{});
-  }catch(e){const x=$('err');x.style.display='grid';x.textContent='Camera access is blocked. Allow camera permission for this site in your browser settings, then reload. (Camera needs HTTPS, which GitHub Pages provides.)'}
+    cam.srcObject=stream;cam.classList.toggle('front',facing==='user');cam.play().catch(()=>{});watch();
+  }catch(e){
+    try{
+      if(stream)stream.getTracks().forEach(t=>t.stop());
+      stream=await navigator.mediaDevices.getUserMedia({video:true,audio:false});
+      cam.srcObject=stream;cam.classList.remove('front');cam.play().catch(()=>{});watch();
+    }catch(e2){const x=$('err');x.style.display='grid';x.textContent='Camera access is blocked. Allow camera permission for this site in your browser settings, then reload. (Camera needs HTTPS, which GitHub Pages provides.)'}
+  }
 }
 function startGps(){
   if(gpsWatch!==null)navigator.geolocation.clearWatch(gpsWatch);
@@ -266,6 +273,7 @@ async function drive(){
 }
 
 $('shutter').onclick=capture;
+cam.onclick=()=>{start();toast('Restarting camera…')};
 $('flip').onclick=()=>{facing=facing==='user'?'environment':'user';start()};
 $('back').onclick=()=>$('sheet').classList.remove('open');
 $('thumb').onclick=()=>blob&&$('sheet').classList.add('open');
