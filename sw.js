@@ -1,4 +1,4 @@
-const C = 'stampcam-v1';
+const C = 'stampcam-v2';
 const ASSETS = ['./', 'index.html', 'manifest.json', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', e => {
